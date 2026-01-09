@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dodaj Zamowienie</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Zamówienia</a>
+            <a href="/new-order">Dodaj Nowe</a>
+            <a href="/summary">Podsumowanie</a>
+        </div>
+        <h1>Dodaj nowe zamówienie</h1>
+        <form method="POST" id="orderForm">
+            <div class="card">
+                <h3>Dane klienta</h3>
+                <label>Kategoria:<br>
+                    <select id="categorySelect" onchange="updateSubOptions()" style="width: 100%;">
+                        <option value="">-- Wybierz kategorię --</option>
+                        <option value="sklepy firmowe">Sklepy firmowe</option>
+                        <option value="hurtownie">Hurtownie</option>
+                        <option value="sklepy inne">Sklepy inne</option>
+                        <option value="gromulska">Gromulska</option>
+                    </select>
+                </label>
+
+                <div id="subOptionsContainer" style="display:none; margin-top: 15px;">
+                    <label id="subLabel">Wybierz podmiot / wpisz numer:</label>
+                    <div id="subInputContainer"></div>
+                </div>
+
+                <input type="hidden" name="customer" id="customerInput">
+                
+                <div style="display: flex; gap: 20px; margin-top: 15px;">
+                    <label style="flex: 1;">Data dostawy:<br>
+                        <input type="date" name="deliveryDate" value="<%= new Date().toISOString().slice(0, 10) %>" required style="width: 100%;">
+                    </label>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Produkty</h3>
+                <div id="productRows">
+                    <div class="product-row" style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
+                        <label style="flex: 2;">Produkt:<br>
+                            <select name="products[]" style="width: 100%;">
+                                <% products.forEach(p => { %>
+                                    <option value="<%= p %>"><%= p %></option>
+                                <% }) %>
+                            </select>
+                        </label>
+                        <label style="flex: 1;">Ilość:<br>
+                            <input type="number" name="quantities[]" min="0" step="0.5" required style="width: 100%;">
+                        </label>
+                        <button type="button" class="danger" onclick="this.parentElement.remove()" style="margin-bottom: 15px;">X</button>
+                    </div>
+                </div>
+                <button type="button" class="secondary" onclick="addProductRow()">+ Dodaj kolejny produkt</button>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button type="submit" onclick="return prepareSubmit()" style="width: 100%; padding: 15px;">ZAPISZ ZAMÓWIENIE</button>
+                <p style="text-align: center; margin-top: 15px;"><a href="/">Anuluj i powróć</a></p>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    const data = {
+        "sklepy firmowe": ["latawiec", "gocław"],
+        "hurtownie": ["bagpol", "wywóz"],
+        "sklepy inne": ["rot", "lot"]
+    };
+
+    function updateSubOptions() {
+        const cat = document.getElementById('categorySelect').value;
+        const container = document.getElementById('subOptionsContainer');
+        const inputContainer = document.getElementById('subInputContainer');
+        
+        inputContainer.innerHTML = '';
+        
+        if (!cat) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'block';
+        
+        if (cat === 'gromulska') {
+            inputContainer.innerHTML = '<input type="number" id="subInput" min="1" max="30" placeholder="Numer 1-30" required style="width: 100%;">';
+        } else if (data[cat]) {
+            let html = '<select id="subInput" required style="width: 100%; margin-bottom: 10px;"><option value="">-- Wybierz --</option>';
+            data[cat].forEach(opt => {
+                html += `<option value="${opt}">${opt}</option>`;
+            });
+            html += '<option value="inne">Inne (wpisz recznie)</option></select>';
+            html += '<input type="text" id="manualInput" style="display:none; width: 100%;" placeholder="Wpisz nazwe podmiotu">';
+            inputContainer.innerHTML = html;
+            
+            const sel = document.getElementById('subInput');
+            sel.onchange = function() {
+                document.getElementById('manualInput').style.display = (this.value === 'inne' ? 'block' : 'none');
+            };
+        }
+    }
+
+    function prepareSubmit() {
+        const cat = document.getElementById('categorySelect').value;
+        const sub = document.getElementById('subInput');
+        const manual = document.getElementById('manualInput');
+        const customerInput = document.getElementById('customerInput');
+        
+        if (!cat) {
+            alert('Proszę wybrać kategorię');
+            return false;
+        }
+        
+        let val = '';
+        if (cat === 'gromulska') {
+            if (!sub.value) { alert('Proszę wpisać numer dla Gromulskiej'); return false; }
+            val = 'Gromulska ' + sub.value;
+        } else {
+            if (!sub.value) { alert('Proszę wybrać podmiot'); return false; }
+            val = (sub.value === 'inne' ? manual.value : sub.value);
+        }
+        
+        if (!val) {
+            alert('Proszę wprowadzić lub wybrać podmiot');
+            return false;
+        }
+        
+        customerInput.value = val;
+        return true;
+    }
+
+    function addProductRow() {
+        const container = document.getElementById('productRows');
+        const firstRow = container.querySelector('.product-row');
+        const newRow = firstRow.cloneNode(true);
+        newRow.querySelectorAll('input').forEach(i => i.value = '');
+        container.appendChild(newRow);
+    }
+    </script>
+</body>
+</html>

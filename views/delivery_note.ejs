@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Generowanie DD - <%= customer %></title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Zamówienia</a>
+            <a href="/new-order">Dodaj Nowe</a>
+            <a href="/products">Produkty</a>
+            <a href="/summary">Podsumowanie</a>
+        </div>
+
+        <h1>Generowanie Dowodu Dostawy</h1>
+        
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin:0;">Podmiot: <span style="color: #3498db;"><%= customer %></span></h2>
+                <div style="text-align: right;">
+                    <strong>Data:</strong> <%= new Date().toISOString().slice(0, 10) %>
+                </div>
+            </div>
+
+            <form method="POST">
+                <input type="hidden" name="customer" value="<%= customer %>">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produkt</th>
+                            <th style="text-align: center; width: 150px;">Zamówiona ilość</th>
+                            <th style="text-align: center; width: 150px;">Ilość do wydania</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% deliveryOrders.forEach((o, index) => { %>
+                            <tr>
+                                <td><strong><%= o.product %></strong></td>
+                                <td style="text-align: center;"><%= o.quantity %> szt.</td>
+                                <td>
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                        <input type="number" 
+                                               name="shipped[<%= index %>][quantity]" 
+                                               value="<%= o.shipped %>" 
+                                               step="0.5" 
+                                               min="0" 
+                                               style="width: 80px; text-align: center; padding: 8px;">
+                                        <span>szt.</span>
+                                    </div>
+                                    <input type="hidden" name="shipped[<%= index %>][product]" value="<%= o.product %>">
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 30px; display: flex; gap: 15px;">
+                    <button type="submit" class="btn" style="flex: 2; padding: 15px; font-size: 1.1em;">
+                        ZAPISZ DOKUMENT DD I WYGENERUJ PDF
+                    </button>
+                    <a href="/" class="btn secondary" style="flex: 1; text-align: center; padding: 15px; display: flex; align-items: center; justify-content: center;">
+                        ANULUJ
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px; color: #856404;">
+            <strong>Informacja:</strong> Po kliknięciu przycisku zamówienia zostaną oznaczone jako zrealizowane, a system wygeneruje profesjonalny dokument PDF z Twoim logo.
+        </div>
+    </div>
+</body>
+</html>

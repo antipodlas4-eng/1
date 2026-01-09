@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Katalog Produktów</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Zamówienia</a>
+            <a href="/new-order">Dodaj Nowe</a>
+            <a href="/products">Produkty</a>
+            <a href="/summary">Podsumowanie</a>
+        </div>
+
+        <h1>Katalog Produktów</h1>
+
+        <div class="card">
+            <h3>Dodaj nowy produkt</h3>
+            <form method="POST" action="/products/add" style="display: flex; gap: 10px;">
+                <input type="text" name="productName" placeholder="Nazwa produktu..." required style="flex: 1;">
+                <button type="submit">Dodaj</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Lista produktów</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nazwa produktu</th>
+                        <th style="width: 200px;">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% products.forEach(product => { %>
+                        <tr>
+                            <td>
+                                <form method="POST" action="/products/edit" id="edit-form-<%= product.replace(/\s+/g, '-') %>" style="margin:0; background:none; border:none; padding:0; display: flex; gap: 5px;">
+                                    <input type="hidden" name="oldName" value="<%= product %>">
+                                    <input type="text" name="newName" value="<%= product %>" required style="flex: 1; padding: 5px;">
+                                    <button type="submit" class="secondary" style="padding: 5px 10px; font-size: 12px;">Zmień nazwę</button>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="POST" action="/products/delete" style="margin:0; background:none; border:none; padding:0;">
+                                    <input type="hidden" name="productName" value="<%= product %>">
+                                    <button type="submit" class="danger" style="padding: 5px 10px; font-size: 12px;" onclick="return confirm('Czy na pewno chcesz usunąć ten produkt?')">Usuń</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

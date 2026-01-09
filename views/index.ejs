@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>System Zamowien</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Zamówienia</a>
+            <a href="/new-order">Dodaj Nowe</a>
+            <a href="/products">Produkty</a>
+            <a href="/summary">Podsumowanie</a>
+        </div>
+
+        <h1>Lista zamówień</h1>
+        
+        <form method="GET" action="/">
+            <div style="display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap;">
+                <label>Data dostawy:<br>
+                    <select name="date" onchange="this.form.submit()">
+                        <option value="">Wszystkie daty</option>
+                        <% availableDates.forEach(date => { %>
+                            <option value="<%= date %>" <%= selectedDate === date ? 'selected' : '' %>><%= date %></option>
+                        <% }) %>
+                    </select>
+                </label>
+                
+                <label>Szukaj:<br>
+                    <input type="text" name="search" value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" placeholder="Klient lub produkt...">
+                </label>
+                
+                <button type="submit" class="secondary">Filtruj</button>
+            </div>
+            
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <a href="/print-orders?date=<%= selectedDate %>" target="_blank" class="print-btn">Drukuj Liste Zamowien (PDF)</a>
+                <a href="/print-summary?date=<%= selectedDate %>" target="_blank" class="print-btn">Drukuj Podsumowanie (PDF)</a>
+            </div>
+        </form>
+
+        <% 
+          const customers = [...new Set(orders.map(o => o.customer))];
+          let totalAll = 0;
+        %>
+
+        <% customers.forEach(customer => { %>
+            <% const customerOrders = orders.filter(o => o.customer === customer); %>
+            <div class="card">
+                <h3>Podmiot: <%= customer %></h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produkt</th>
+                            <th>Ilość</th>
+                            <th>Status</th>
+                            <th>Akcja</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% 
+                          let customerTotal = 0;
+                          customerOrders.forEach(o => { 
+                            customerTotal += o.quantity;
+                            totalAll += o.quantity;
+                        %>
+                            <tr>
+                                <td><%= o.product %></td>
+                                <td><strong><%= o.quantity %></strong> szt.</td>
+                                <td>
+                                    <span class="status-tag <%= o.status === 'wypelnione' ? 'status-completed' : 'status-pending' %>">
+                                        <%= o.status %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <form method="POST" action="/delete-order" style="display:inline; background:none; border:none; padding:0; margin:0;">
+                                        <input type="hidden" name="orderId" value="<%= o.id %>">
+                                        <button type="submit" class="danger" style="padding: 5px 10px; font-size: 12px;" onclick="return confirm('Czy na pewno chcesz usunac to zamowienie?')">Usun</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <p>Suma dla podmiotu: <strong><%= customerTotal %></strong> szt.</p>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <% if (customerOrders.every(o => o.status === 'wypelnione')) { %>
+                            <span style="color: #27ae60; font-weight: bold;">ZREALIZOWANE</span>
+                        <% } %>
+                        <a href="/delivery-note?customer=<%= encodeURIComponent(customer) %>" class="secondary" style="background: #3498db; color: white; padding: 8px 15px; border-radius: 4px;">Generuj Dokument DD</a>
+                    </div>
+                </div>
+            </div>
+        <% }) %>
+
+        <div class="card" style="background: #2c3e50; color: white;">
+            <h2 style="color: white; border-bottom-color: #555;">Suma wszystkich zamowien: <%= totalAll %> szt.</h2>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Podsumowanie Zbiorcze</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Zamówienia</a>
+            <a href="/new-order">Dodaj Nowe</a>
+            <a href="/products">Produkty</a>
+            <a href="/summary">Podsumowanie</a>
+        </div>
+
+        <h1>Podsumowanie zbiorcze produktow</h1>
+
+        <form method="GET" action="/summary">
+            <div style="display: flex; gap: 20px; align-items: flex-end;">
+                <label>Wybierz date dostawy:<br>
+                    <select name="date" onchange="this.form.submit()">
+                        <option value="">Wszystkie daty</option>
+                        <% availableDates.forEach(date => { %>
+                            <option value="<%= date %>" <%= selectedDate === date ? 'selected' : '' %>><%= date %></option>
+                        <% }) %>
+                    </select>
+                </label>
+                <a href="/print-summary?date=<%= selectedDate %>" target="_blank" class="print-btn" style="margin-bottom: 15px;">Drukuj Podsumowanie (PDF)</a>
+            </div>
+        </form>
+
+        <div class="card">
+            <% if (selectedDate) { %>
+                <h3>Zapotrzebowanie na dzien: <%= selectedDate %></h3>
+            <% } else { %>
+                <h3>Zapotrzebowanie dla wszystkich dat</h3>
+            <% } %>
+
+            <div style="display: flex; gap: 40px; flex-wrap: wrap;">
+                <div style="flex: 2; min-width: 300px;">
+                    <table>
+                        <thead>
+                            <tr style="background-color: #f2f2f2;">
+                                <th>Produkt</th>
+                                <th style="text-align: right;">Laczna ilosc</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% Object.keys(summary).forEach(product => { %>
+                                <tr>
+                                    <td><%= product %></td>
+                                    <td style="text-align: right;"><strong><%= summary[product] %></strong> szt./kg</td>
+                                </tr>
+                            <% }) %>
+                            <% if (Object.keys(summary).length === 0) { %>
+                                <tr><td colspan="2" style="text-align: center;">Brak danych dla wybranego okresu</td></tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="flex: 1; min-width: 250px; padding: 20px; border: 1px dashed #ccc; background-color: #fafafa; border-radius: 5px;">
+                    <h3>Informacja</h3>
+                    <p>To zestawienie sumuje wszystkie zamowienia od wszystkich klientów na dany dzien.</p>
+                    <p style="font-size: 1.2em;">Suma pozycji: <strong><%= Object.values(summary).reduce((a, b) => a + b, 0) %></strong></p>
+                </div>
+            </div>
+        </div>
+        
+        <p style="text-align: center;"><a href="/">Powrot do listy zamowien</a></p>
+    </div>
+</body>
+</html>
